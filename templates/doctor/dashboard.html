@@ -38,6 +38,7 @@
                             <td>{{ appointment.appointment_time.strftime('%I:%M %p') }}</td>
                             <td>{{ appointment.symptoms }}</td>
                             <td>
+                                <a href="{{ url_for('doctor_appointment_details', appointment_id=appointment.id) }}" class="btn btn-info btn-sm">View</a>
                                 <button class="btn btn-success btn-sm" onclick="updateAppointmentStatus('{{ appointment.id }}', 'approved')">Accept</button>
                                 <button class="btn btn-danger btn-sm" onclick="updateAppointmentStatus('{{ appointment.id }}', 'rejected')">Reject</button>
                             </td>
@@ -76,7 +77,7 @@
                             <td>{{ appointment.appointment_time.strftime('%I:%M %p') }}</td>
                             <td>{{ appointment.symptoms }}</td>
                             <td>
-                                <button class="btn btn-success btn-sm" onclick="updateAppointmentStatus('{{ appointment.id }}', 'completed')">Mark Complete</button>
+                                <a href="{{ url_for('doctor_appointment_details', appointment_id=appointment.id) }}" class="btn btn-primary btn-sm">Add Medical Records</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -104,6 +105,7 @@
                             <th>Date</th>
                             <th>Time</th>
                             <th>Symptoms</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -113,6 +115,9 @@
                             <td>{{ appointment.appointment_time.strftime('%Y-%m-%d') }}</td>
                             <td>{{ appointment.appointment_time.strftime('%I:%M %p') }}</td>
                             <td>{{ appointment.symptoms }}</td>
+                            <td>
+                                <a href="{{ url_for('doctor_appointment_details', appointment_id=appointment.id) }}" class="btn btn-info btn-sm">View</a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -139,6 +144,7 @@
                             <th>Date</th>
                             <th>Time</th>
                             <th>Symptoms</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -148,6 +154,9 @@
                             <td>{{ appointment.appointment_time.strftime('%Y-%m-%d') }}</td>
                             <td>{{ appointment.appointment_time.strftime('%I:%M %p') }}</td>
                             <td>{{ appointment.symptoms }}</td>
+                            <td>
+                                <a href="{{ url_for('doctor_appointment_details', appointment_id=appointment.id) }}" class="btn btn-info btn-sm">View Records</a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -9,16 +9,6 @@
                     <h4 class="mb-0">Book Appointment with Dr. {{ doctor.user.name }}</h4>
                 </div>
                 <div class="card-body">
-                    <div class="mb-4">
-                        <h5>Doctor Details:</h5>
-                        <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
-                        <p><strong>Experience:</strong> {{ doctor.experience }} years</p>
-                        <p><strong>Consultation Fee:</strong> ₹{{ doctor.consultation_fee }}</p>
-                        {% if doctor.about %}
-                        <p><strong>About:</strong> {{ doctor.about }}</p>
-                        {% endif %}
-                    </div>
-
                     <form method="POST" class="needs-validation" novalidate>
                         <div class="mb-3">
                             <label for="appointment_date" class="form-label">Appointment Date</label>

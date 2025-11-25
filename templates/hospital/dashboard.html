@@ -72,7 +72,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header bg-white">
-                    <h4 class="mb-0">Today's Schedule</h4>
+                    <h4 class="mb-0" style="color: #000000 !important;">Today's Schedule</h4>
                 </div>
                 <div class="card-body">
                     {% if today_appointments %}
@@ -103,10 +103,10 @@
                                     <td>
                                         {% if appointment.status == 'pending' %}
                                         <div class="btn-group">
-                                            <button class="btn btn-sm btn-success" onclick="updateAppointmentStatus({{ appointment.id }}, 'approved')">
+                                            <button class="btn btn-sm btn-success approve-btn" data-appointment-id="{{ appointment.id }}">
                                                 <i class="fas fa-check me-1"></i>Approve
                                             </button>
-                                            <button class="btn btn-sm btn-danger" onclick="updateAppointmentStatus({{ appointment.id }}, 'rejected')">
+                                            <button class="btn btn-sm btn-danger reject-btn" data-appointment-id="{{ appointment.id }}">
                                                 <i class="fas fa-times me-1"></i>Reject
                                             </button>
                                         </div>
@@ -130,7 +130,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header bg-white">
-                    <h4 class="mb-0">Pending Appointment Requests</h4>
+                    <h4 class="mb-0" style="color: #000000 !important;">Pending Appointment Requests</h4>
                 </div>
                 <div class="card-body">
                     {% if pending_appointments %}
@@ -156,10 +156,10 @@
                                     <td>{{ appointment.symptoms[:50] + '...' if appointment.symptoms and appointment.symptoms|length > 50 else appointment.symptoms or 'None provided' }}</td>
                                     <td>
                                         <div class="btn-group">
-                                            <button class="btn btn-sm btn-success" onclick="updateAppointmentStatus({{ appointment.id }}, 'approved')">
+                                            <button class="btn btn-sm btn-success approve-btn" data-appointment-id="{{ appointment.id }}">
                                                 <i class="fas fa-check me-1"></i>Approve
                                             </button>
-                                            <button class="btn btn-sm btn-danger" onclick="updateAppointmentStatus({{ appointment.id }}, 'rejected')">
+                                            <button class="btn btn-sm btn-danger reject-btn" data-appointment-id="{{ appointment.id }}">
                                                 <i class="fas fa-times me-1"></i>Reject
                                             </button>
                                         </div>
@@ -249,7 +249,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header bg-white">
-                    <h4 class="mb-0">Our Doctors</h4>
+                    <h4 class="mb-0" style="color: #000000 !important;">Our Doctors</h4>
                 </div>
                 <div class="card-body">
                     {% if doctors %}
@@ -343,57 +343,52 @@
 
 {% block scripts %}
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Approve buttons
+    document.querySelectorAll('.approve-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const appointmentId = this.getAttribute('data-appointment-id');
+            updateAppointmentStatus(appointmentId, 'approved');
+        });
+    });
+    
+    // Reject buttons
+    document.querySelectorAll('.reject-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const appointmentId = this.getAttribute('data-appointment-id');
+            updateAppointmentStatus(appointmentId, 'rejected');
+        });
+    });
+});
+
 function updateAppointmentStatus(appointmentId, status) {
     if (!confirm('Are you sure you want to ' + status + ' this appointment?')) {
         return;
     }
 
-    fetch('/update_appointment_status/' + appointmentId + '/' + status, {
+    fetch('/update_appointment_status', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+            appointment_id: appointmentId,
+            status: status
+        })
     })
     .then(function(response) {
         return response.json();
     })
     .then(function(data) {
         if (data.success) {
-            showToast('Appointment ' + status + ' successfully', 'success');
-            setTimeout(function() {
-                window.location.reload();
-            }, 2000);
+            alert('Appointment ' + status + ' successfully');
+            window.location.reload();
         } else {
-            showToast(data.message || 'Failed to update appointment', 'error');
+            alert(data.message || 'Failed to update appointment');
         }
     })
     .catch(function(error) {
-        showToast('Error updating appointment', 'error');
-    });
-}
-
-function showToast(message, type) {
-    const toast = document.createElement('div');
-    toast.className = 'toast align-items-center text-white bg-' + 
-        (type === 'success' ? 'success' : 'danger') + ' border-0';
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
-    
-    toast.innerHTML = 
-        '<div class="d-flex">' +
-            '<div class="toast-body">' +
-                message +
-            '</div>' +
-            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
-        '</div>';
-    
-    document.body.appendChild(toast);
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
-    
-    toast.addEventListener('hidden.bs.toast', function() {
-        toast.remove();
+        alert('Error updating appointment');
     });
 }
 </script>

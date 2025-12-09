@@ -1169,6 +1169,12 @@ User message: """
             'response': f"I'm having trouble processing your request right now. Error: {str(e)}"
         })
 
+# Initialize database
+with app.app_context():
+    db.create_all()
+
+# For Vercel serverless
+application = app
+
 if __name__ == '__main__':
-    init_db()
     app.run(host='0.0.0.0', debug=True)

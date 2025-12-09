@@ -6,18 +6,26 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from functools import wraps
 import secrets
-from dotenv import load_dotenv
 import google.generativeai as genai
 
-# Load environment variables (force override)
-load_dotenv(override=True)
+# Try to load dotenv (for local development)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(override=True)
+except ImportError:
+    pass
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = secrets.token_hex(16)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(16))
 
-# Ensure instance directory exists
-os.makedirs('instance', exist_ok=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clinic.db'
+# Use /tmp for SQLite on Vercel (serverless)
+if os.environ.get('VERCEL'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/clinic.db'
+else:
+    os.makedirs('instance', exist_ok=True)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clinic.db'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Configure Gemini AI

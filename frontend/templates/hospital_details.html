@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+body {
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%) !important;
+    min-height: 100vh;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 style="color: #ffffff !important; font-weight: 800; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);">{{ hospital.name }}</h2>
+            <p style="color: #ffffff !important; text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);">{{ hospital.address }}</p>
+            <p style="color: #ffffff !important;"><strong>Contact:</strong> {{ hospital.contact }}</p>
+            {% if hospital.description %}
+            <p style="color: #ffffff !important;">{{ hospital.description }}</p>
+            {% endif %}
+            <hr style="border-color: rgba(0, 245, 255, 0.3);">
+        </div>
+    </div>
+
+    <h3 class="mb-4" style="color: #ffffff !important; font-weight: 700; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);">Our Doctors</h3>
+    
+    {% if hospital.doctors %}
+    <div class="row">
+        {% for doctor in hospital.doctors %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ doctor.user.name }}</h5>
+                    <p class="card-text">
+                        <strong>Specialization:</strong> {{ doctor.specialization }}<br>
+                        <strong>Experience:</strong> {{ doctor.experience }} years<br>
+                        <strong>Consultation Fee:</strong> ₹{{ doctor.consultation_fee }}
+                    </p>
+                    {% if doctor.about %}
+                    <p class="text-muted">{{ doctor.about }}</p>
+                    {% endif %}
+                    
+                    {% if session.get('user_type') == 'patient' %}
+                    <a href="{{ url_for('book_appointment', doctor_id=doctor.id) }}" class="btn btn-primary">Book Appointment</a>
+                    {% else %}
+                    <a href="{{ url_for('login', user_type='patient') }}" class="btn btn-outline-primary">Login to Book</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p>No doctors available at this hospital yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

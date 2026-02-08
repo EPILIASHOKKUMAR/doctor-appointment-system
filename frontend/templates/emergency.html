@@ -1,0 +1,990 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+/* Dark Background */
+body {
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%) !important;
+    min-height: 100vh;
+}
+
+/* All text white by default */
+.container-fluid, .emergency-header, .lead {
+    color: #ffffff !important;
+}
+
+.emergency-header h1 {
+    color: #ff006e !important;
+    text-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Emergency Header -->
+    <div class="emergency-header text-center mb-4">
+        <h1>🚨 Emergency Services</h1>
+        <p class="lead">Find nearby hospitals and get immediate help</p>
+        <div class="emergency-numbers">
+            <a href="tel:108" class="btn btn-danger btn-lg me-2">
+                📞 Ambulance: 108
+            </a>
+            <a href="tel:100" class="btn btn-warning btn-lg me-2">
+                📞 Police: 100
+            </a>
+            <a href="tel:101" class="btn btn-orange btn-lg">
+                📞 Fire: 101
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center emergency-action-card" onclick="showAmbulanceModal()">
+                <div class="card-body">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🚑</div>
+                    <h5>Book Ambulance</h5>
+                    <p class="small text-muted">Request emergency ambulance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center emergency-action-card" onclick="showBloodBankModal()">
+                <div class="card-body">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🩸</div>
+                    <h5>Blood Banks</h5>
+                    <p class="small text-muted">Find nearby blood banks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center emergency-action-card" onclick="showPharmacyModal()">
+                <div class="card-body">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💊</div>
+                    <h5>Pharmacies</h5>
+                    <p class="small text-muted">Find 24/7 pharmacies</p>
+                </div>
+            </div>
+        </div>
+        {% if session.user_id %}
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('emergency_contacts') }}" class="text-decoration-none">
+                <div class="card text-center emergency-action-card">
+                    <div class="card-body">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
+                        <h5>Emergency Contacts</h5>
+                        <p class="small text-muted">Manage your contacts</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <!-- Map Section -->
+        <div class="col-lg-7 mb-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">🗺️ Your Location & Nearby Services</h5>
+                </div>
+                <div class="card-body p-0" style="position: relative;">
+                    <div id="emergencyMap" style="height: 500px;"></div>
+                    <!-- Map Legend -->
+                    <div style="position: absolute; bottom: 20px; right: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000;">
+                        <h6 class="mb-2"><strong>Map Legend</strong></h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <div style="background:#e74a3b;width:20px;height:20px;border-radius:50%;border:2px solid white;margin-right:10px;"></div>
+                            <span>Your Location</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <div style="background:#dc3545;width:25px;height:25px;border-radius:5px;border:2px solid white;margin-right:10px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-hospital" style="font-size:12px;color:white;"></i>
+                            </div>
+                            <span>Hospitals (Red)</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <div style="background:#28a745;width:25px;height:25px;border-radius:50%;border:2px solid white;margin-right:10px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-plus" style="font-size:12px;color:white;"></i>
+                            </div>
+                            <span>Pharmacies (Green)</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div style="background:#dc3545;width:25px;height:25px;border-radius:50%;border:2px solid white;margin-right:10px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-tint" style="font-size:12px;color:white;"></i>
+                            </div>
+                            <span>Blood Banks (Red)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div id="locationInfo" class="text-center">
+                        ⏳ Getting your location...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hospitals List -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🏥 Nearby Hospitals</h5>
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    <div id="hospitalsList">
+                        <div class="text-center py-4">
+                            <div style="font-size: 2rem;">⏳</div>
+                            <p class="mt-2">Searching for hospitals...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Our Registered Hospitals -->
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">🏥 SmartClinic Hospitals</h5>
+                </div>
+                <div class="card-body">
+                    {% if hospitals %}
+                        {% for hospital in hospitals %}
+                        <div class="hospital-item mb-3 p-3 border rounded">
+                            <h6>🏥 {{ hospital.name }}</h6>
+                            <p class="small text-muted mb-2">
+                                📍 {{ hospital.address }}
+                            </p>
+                            <p class="small mb-2">
+                                📞 {{ hospital.contact }}
+                            </p>
+                            <p class="small mb-2">
+                                👨‍⚕️ {{ hospital.doctors|length }} Doctors Available
+                            </p>
+                            <a href="{{ url_for('hospital_details', hospital_id=hospital.id) }}" class="btn btn-sm btn-primary">
+                                📅 Book Appointment
+                            </a>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No registered hospitals yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .emergency-header {
+        background: linear-gradient(135deg, rgba(255, 0, 110, 0.1) 0%, rgba(131, 56, 236, 0.1) 100%);
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        border: 2px solid rgba(255, 0, 110, 0.3);
+    }
+
+    .btn-orange {
+        background-color: #fd7e14;
+        border-color: #fd7e14;
+        color: white;
+    }
+
+    .btn-orange:hover {
+        background-color: #e96b02;
+        color: white;
+    }
+
+    .hospital-card {
+        border-left: 4px solid #4e73df;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .hospital-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        background-color: #f8f9fc;
+    }
+
+    .hospital-item {
+        transition: all 0.3s ease;
+    }
+
+    .hospital-item:hover {
+        background-color: #f8f9fc;
+        transform: translateX(5px);
+    }
+
+    .distance-badge {
+        background: linear-gradient(135deg, #e74a3b 0%, #ff6b6b 100%);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+    }
+
+    #emergencyMap {
+        border-radius: 0 0 10px 10px;
+    }
+
+    .leaflet-popup-content {
+        min-width: 200px;
+    }
+
+    .popup-btn {
+        display: block;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .emergency-action-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .emergency-action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-color: #4e73df;
+    }
+
+    .service-item {
+        border-left: 4px solid #4e73df;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .service-item:hover {
+        background-color: #f8f9fc;
+        transform: translateX(5px);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+</style>
+
+<!-- Ambulance Booking Modal -->
+<div class="modal fade" id="ambulanceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-ambulance"></i> Book Emergency Ambulance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ambulanceForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Patient Name *</label>
+                            <input type="text" class="form-control" name="patient_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contact Phone *</label>
+                            <input type="tel" class="form-control" name="phone" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Pickup Address *</label>
+                        <textarea class="form-control" name="pickup_address" rows="2" required></textarea>
+                        <input type="hidden" name="pickup_lat" id="pickup_lat">
+                        <input type="hidden" name="pickup_lng" id="pickup_lng">
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="useCurrentLocation()">
+                            <i class="fas fa-crosshairs"></i> Use Current Location
+                        </button>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Destination Hospital (Optional)</label>
+                        <input type="text" class="form-control" name="destination_hospital">
+                        <input type="hidden" name="destination_lat">
+                        <input type="hidden" name="destination_lng">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Emergency Type</label>
+                            <select class="form-select" name="emergency_type">
+                                <option value="">Select type</option>
+                                <option value="accident">Accident</option>
+                                <option value="heart_attack">Heart Attack</option>
+                                <option value="stroke">Stroke</option>
+                                <option value="breathing">Breathing Problem</option>
+                                <option value="injury">Severe Injury</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Patient Condition</label>
+                            <textarea class="form-control" name="patient_condition" rows="2" placeholder="Brief description of condition"></textarea>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> This is a booking request. For immediate emergency, please call <strong>108</strong> directly.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="submitAmbulanceBooking()">
+                    <i class="fas fa-ambulance"></i> Request Ambulance
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Blood Bank Modal -->
+<div class="modal fade" id="bloodBankModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-tint"></i> Nearby Blood Banks</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="bloodBanksList">
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-2">Searching for blood banks...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pharmacy Modal -->
+<div class="modal fade" id="pharmacyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-pills"></i> Nearby Pharmacies</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="pharmacyList">
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-2">Searching for pharmacies...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% if google_maps_key %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&libraries=places&callback=initGoogleMaps" async defer></script>
+<script>
+// Google Maps initialization callback
+window.initGoogleMaps = function() {
+    console.log('✓ Google Maps API loaded successfully');
+    window.googleMapsLoaded = true;
+};
+</script>
+{% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let map;
+    let userLat, userLng;
+    
+    // Check if Google Maps is available
+    {% if google_maps_key %}
+    console.log('Google Maps API Key configured');
+    {% else %}
+    console.log('No Google Maps API Key - using OpenStreetMap');
+    {% endif %}
+    
+    // Initialize map with Google Maps (if API key available) or OpenStreetMap
+    map = L.map('emergencyMap').setView([20.5937, 78.9629], 5); // Default to India center
+    
+    {% if google_maps_key %}
+    // Use Google Maps tiles (better quality)
+    L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
+        attribution: '© Google Maps',
+        maxZoom: 20
+    }).addTo(map);
+    console.log('✓ Using Google Maps tiles');
+    {% else %}
+    // Fallback to OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    console.log('Using OpenStreetMap tiles');
+    {% endif %}
+
+    // Get user location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                userLat = position.coords.latitude;
+                userLng = position.coords.longitude;
+                
+                // Update map view
+                map.setView([userLat, userLng], 14);
+                
+                // Add user marker
+                const userIcon = L.divIcon({
+                    className: 'user-icon',
+                    html: '<div style="background:#e74a3b;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [20, 20]
+                });
+                
+                L.marker([userLat, userLng], {icon: userIcon})
+                    .addTo(map)
+                    .bindPopup('<b>📍 Your Location</b>')
+                    .openPopup();
+                
+                document.getElementById('locationInfo').innerHTML = 
+                    '<i class="fas fa-check-circle text-success"></i> Location found: ' + 
+                    userLat.toFixed(4) + ', ' + userLng.toFixed(4);
+                
+                // Search for nearby hospitals
+                searchNearbyHospitals(userLat, userLng);
+            },
+            function(error) {
+                document.getElementById('locationInfo').innerHTML = 
+                    '<i class="fas fa-exclamation-triangle text-warning"></i> Location access denied. Please enable location services.';
+                document.getElementById('hospitalsList').innerHTML = 
+                    '<div class="alert alert-warning">Enable location to find nearby hospitals.</div>';
+            }
+        );
+    } else {
+        document.getElementById('locationInfo').innerHTML = 
+            '<i class="fas fa-times-circle text-danger"></i> Geolocation not supported';
+    }
+
+    function searchNearbyHospitals(lat, lng) {
+        // Search within 100km radius
+        const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];node["amenity"="hospital"](around:100000,${lat},${lng});out;`;
+        
+        fetch(overpassUrl)
+            .then(response => response.json())
+            .then(data => {
+                const hospitalsList = document.getElementById('hospitalsList');
+                
+                if (data.elements && data.elements.length > 0) {
+                    let html = '';
+                    
+                    // Sort by distance
+                    data.elements.forEach(h => {
+                        h.distance = calculateDistance(lat, lng, h.lat, h.lon);
+                    });
+                    data.elements.sort((a, b) => a.distance - b.distance);
+                    
+                    // Show count
+                    html += `<div class="alert alert-success mb-3">
+                        <i class="fas fa-hospital"></i> Found <strong>${data.elements.length}</strong> hospitals within 100km
+                    </div>`;
+                    
+                    // Display top 20 hospitals in list
+                    data.elements.slice(0, 20).forEach((hospital, index) => {
+                        const name = hospital.tags.name || 'Hospital';
+                        const distance = hospital.distance.toFixed(1);
+                        
+                        // Add RED hospital marker to map
+                        const hospitalIcon = L.divIcon({
+                            className: 'hospital-icon',
+                            html: '<div style="background:#dc3545;color:white;width:35px;height:35px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:3px solid white;box-shadow:0 0 15px rgba(220,53,69,0.5);"><i class="fas fa-hospital" style="font-size:18px;"></i></div>',
+                            iconSize: [35, 35]
+                        });
+                        
+                        const marker = L.marker([hospital.lat, hospital.lon], {icon: hospitalIcon}).addTo(map);
+                        
+                        marker.bindPopup(`
+                            <b>🏥 ${name}</b><br>
+                            <span class="text-muted">${distance} km away</span><br>
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lon}" 
+                               target="_blank" class="btn btn-sm btn-primary popup-btn mt-2">
+                                <i class="fas fa-directions"></i> Get Directions
+                            </a>
+                        `);
+                        
+                        html += `
+                            <div class="hospital-card p-3 mb-2 border rounded" onclick="map.setView([${hospital.lat}, ${hospital.lon}], 14)">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <span class="badge bg-danger me-2">${index + 1}</span>
+                                            ${name}
+                                        </h6>
+                                        <span class="distance-badge">${distance} km</span>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <a href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lon}" 
+                                       target="_blank" class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="fas fa-directions"></i> Directions
+                                    </a>
+                                    <a href="tel:108" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-phone"></i> Call 108
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    hospitalsList.innerHTML = html;
+                    
+                    // Fit map to show all hospitals (or at least the first 50 for performance)
+                    const bounds = L.latLngBounds([[lat, lng]]);
+                    data.elements.slice(0, 50).forEach(h => bounds.extend([h.lat, h.lon]));
+                    map.fitBounds(bounds, {padding: [50, 50]});
+                    
+                } else {
+                    hospitalsList.innerHTML = '<div class="alert alert-info">No hospitals found within 100km. Check our registered hospitals below.</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('hospitalsList').innerHTML = 
+                    '<div class="alert alert-warning">Could not fetch nearby hospitals. Check our registered hospitals below.</div>';
+            });
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    // Make functions globally accessible
+    window.searchNearbyHospitals = searchNearbyHospitals;
+    window.calculateDistance = calculateDistance;
+});
+
+// Ambulance Booking Functions
+function showAmbulanceModal() {
+    {% if not session.user_id %}
+        alert('Please login to book an ambulance');
+        window.location.href = '{{ url_for("login") }}';
+        return;
+    {% endif %}
+    const modal = new bootstrap.Modal(document.getElementById('ambulanceModal'));
+    modal.show();
+}
+
+function useCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById('pickup_lat').value = position.coords.latitude;
+            document.getElementById('pickup_lng').value = position.coords.longitude;
+            
+            // Reverse geocode to get address
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`)
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('[name="pickup_address"]').value = data.display_name;
+                });
+        });
+    }
+}
+
+function submitAmbulanceBooking() {
+    const form = document.getElementById('ambulanceForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    fetch('{{ url_for("book_ambulance") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            bootstrap.Modal.getInstance(document.getElementById('ambulanceModal')).hide();
+            form.reset();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error booking ambulance. Please try calling 108 directly.');
+    });
+}
+
+// Blood Bank Functions
+function showBloodBankModal() {
+    const modal = new bootstrap.Modal(document.getElementById('bloodBankModal'));
+    modal.show();
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            searchBloodBanks(position.coords.latitude, position.coords.longitude);
+        });
+    }
+}
+
+function searchBloodBanks(lat, lng) {
+    const bloodBanksList = document.getElementById('bloodBanksList');
+    
+    // Show loading message
+    bloodBanksList.innerHTML = `
+        <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x text-danger"></i>
+            <p class="mt-2">Searching for blood banks...</p>
+        </div>
+    `;
+    
+    // Search within 50km radius (reduced for better performance)
+    const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];(node["amenity"="blood_bank"](around:50000,${lat},${lng});node["healthcare"="blood_donation"](around:50000,${lat},${lng}););out;`;
+    
+    fetch(overpassUrl, { timeout: 30000 })
+        .then(response => response.json())
+        .then(data => {
+            const bloodBanksList = document.getElementById('bloodBanksList');
+            
+            if (data.elements && data.elements.length > 0) {
+                let html = '';
+                
+                // Calculate distances and sort
+                data.elements.forEach(b => {
+                    b.distance = window.calculateDistance(lat, lng, b.lat, b.lon);
+                });
+                data.elements.sort((a, b) => a.distance - b.distance);
+                
+                // Show count
+                html += `<div class="alert alert-success mb-3">
+                    <i class="fas fa-tint"></i> Found <strong>${data.elements.length}</strong> blood banks within 50km
+                </div>`;
+                
+                // Add blood bank markers to main map
+                data.elements.forEach((bank) => {
+                    const bloodBankIcon = L.divIcon({
+                        className: 'bloodbank-icon',
+                        html: '<div style="background:#dc3545;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;border:3px solid white;box-shadow:0 0 15px rgba(220,53,69,0.5);"><i class="fas fa-tint" style="font-size:16px;"></i></div>',
+                        iconSize: [32, 32]
+                    });
+                    
+                    const name = bank.tags.name || 'Blood Bank';
+                    const distance = bank.distance.toFixed(1);
+                    
+                    const marker = L.marker([bank.lat, bank.lon], {icon: bloodBankIcon}).addTo(map);
+                    marker.bindPopup(`
+                        <b>🩸 ${name}</b><br>
+                        <span class="text-muted">${distance} km away</span><br>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${bank.lat},${bank.lon}" 
+                           target="_blank" class="btn btn-sm btn-danger popup-btn mt-2">
+                            <i class="fas fa-directions"></i> Get Directions
+                        </a>
+                    `);
+                });
+                
+                // Display in modal list
+                data.elements.forEach((bank, index) => {
+                    const name = bank.tags.name || 'Blood Bank';
+                    const distance = bank.distance.toFixed(1);
+                    
+                    html += `
+                        <div class="service-item p-3 mb-2 border rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6>
+                                        <span class="badge bg-danger me-2">${index + 1}</span>
+                                        <i class="fas fa-tint text-danger"></i> ${name}
+                                    </h6>
+                                    <span class="badge bg-danger">${distance} km away</span>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${bank.lat},${bank.lon}" 
+                                   target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-directions"></i> Get Directions
+                                </a>
+                                <a href="tel:108" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-phone"></i> Call 108
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                bloodBanksList.innerHTML = html;
+            } else {
+                bloodBanksList.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No blood banks found within 50km. 
+                        <br>Call <strong>108</strong> for emergency blood requirements.
+                        <br><small class="mt-2">Blood banks may be registered under hospitals in your area.</small>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Blood bank search error:', error);
+            document.getElementById('bloodBanksList').innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>Could not load blood banks</strong>
+                    <br>Please call <strong>108</strong> for emergency blood requirements.
+                    <br><button class="btn btn-sm btn-warning mt-2" onclick="searchBloodBanks(${lat}, ${lng})">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            `;
+        });
+}
+
+// Pharmacy Functions
+function showPharmacyModal() {
+    const modal = new bootstrap.Modal(document.getElementById('pharmacyModal'));
+    modal.show();
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            searchPharmacies(position.coords.latitude, position.coords.longitude);
+        });
+    }
+}
+
+function searchPharmacies(lat, lng) {
+    const pharmacyList = document.getElementById('pharmacyList');
+    
+    // Show loading message
+    pharmacyList.innerHTML = `
+        <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x text-success"></i>
+            <p class="mt-2">Searching for pharmacies nearby...</p>
+            <small class="text-muted" id="searchMethod">Checking best search method...</small>
+        </div>
+    `;
+    
+    {% if google_maps_key %}
+    // Wait a bit for Google Maps to load, then check
+    setTimeout(function() {
+        const methodEl = document.getElementById('searchMethod');
+        
+        // Check if Google Maps is loaded
+        if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+            console.log('✓ Using Google Places API for pharmacy search');
+            if (methodEl) methodEl.textContent = 'Using Google Places API (fast & reliable)';
+            
+            // Use Google Places API (much more reliable!)
+            const service = new google.maps.places.PlacesService(document.createElement('div'));
+            const request = {
+                location: new google.maps.LatLng(lat, lng),
+                radius: 20000, // 20km
+                type: 'pharmacy'
+            };
+            
+            service.nearbySearch(request, function(results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+            let html = `<div class="alert alert-success mb-3">
+                <i class="fas fa-pills"></i> Found <strong>${results.length}</strong> pharmacies nearby
+            </div>`;
+            
+            results.slice(0, 20).forEach((place, index) => {
+                const distance = window.calculateDistance(lat, lng, place.geometry.location.lat(), place.geometry.location.lng()).toFixed(1);
+                const isOpen = place.opening_hours?.isOpen() ? '<span class="badge bg-success ms-2">Open Now</span>' : '';
+                const rating = place.rating ? `⭐ ${place.rating}` : '';
+                
+                // Add marker to map
+                const pharmacyIcon = L.divIcon({
+                    className: 'pharmacy-icon',
+                    html: '<div style="background:#28a745;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;border:3px solid white;box-shadow:0 0 15px rgba(40,167,69,0.5);"><i class="fas fa-plus" style="font-size:16px;"></i></div>',
+                    iconSize: [32, 32]
+                });
+                
+                const marker = L.marker([place.geometry.location.lat(), place.geometry.location.lng()], {icon: pharmacyIcon}).addTo(map);
+                marker.bindPopup(`
+                    <b>💊 ${place.name}</b><br>
+                    <span class="text-muted">${distance} km away</span><br>
+                    ${rating}<br>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}" 
+                       target="_blank" class="btn btn-sm btn-success popup-btn mt-2">
+                        <i class="fas fa-directions"></i> Get Directions
+                    </a>
+                `);
+                
+                html += `
+                    <div class="service-item p-3 mb-2 border rounded">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6>
+                                    <span class="badge bg-success me-2">${index + 1}</span>
+                                    <i class="fas fa-plus-circle text-success"></i> ${place.name}
+                                    ${isOpen}
+                                </h6>
+                                <p class="small text-muted mb-1">
+                                    ${place.vicinity || 'Address not available'}
+                                </p>
+                                <span class="badge bg-primary">${distance} km away</span>
+                                ${rating ? `<span class="badge bg-warning text-dark ms-1">${rating}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}" 
+                               target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-directions"></i> Get Directions
+                            </a>
+                            ${place.formatted_phone_number ? `<a href="tel:${place.formatted_phone_number}" class="btn btn-sm btn-success"><i class="fas fa-phone"></i> Call</a>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            pharmacyList.innerHTML = html;
+        } else {
+            pharmacyList.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No pharmacies found within 20km.
+                    <br><small>Try searching in a different area or check nearby hospitals for pharmacy services.</small>
+                    <br><small class="mt-2"><strong>Tip:</strong> Most hospitals have in-house pharmacies.</small>
+                </div>
+            `;
+        }
+    });
+        } else {
+            console.log('⚠ Google Maps not loaded, using OpenStreetMap fallback');
+            const methodEl = document.getElementById('searchMethod');
+            if (methodEl) methodEl.textContent = 'Using OpenStreetMap (free alternative)';
+            // Fallback to OpenStreetMap if Google Maps not loaded
+            useOpenStreetMapPharmacySearch(lat, lng, pharmacyList);
+        }
+    }, 2000); // Wait 2 seconds for Google Maps to load
+    {% else %}
+    const methodEl = document.getElementById('searchMethod');
+    if (methodEl) methodEl.textContent = 'Using OpenStreetMap';
+    useOpenStreetMapPharmacySearch(lat, lng, pharmacyList);
+    {% endif %}
+}
+
+// OpenStreetMap pharmacy search function
+function useOpenStreetMapPharmacySearch(lat, lng, pharmacyList) {
+    console.log('Using OpenStreetMap Overpass API for pharmacy search');
+    const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json][timeout:15];node["amenity"="pharmacy"](around:20000,${lat},${lng});out 100;`;
+    
+    fetch(overpassUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('API request failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.elements && data.elements.length > 0) {
+                let html = '';
+                
+                // Sort by distance
+                data.elements.forEach(p => {
+                    p.distance = window.calculateDistance(lat, lng, p.lat, p.lon);
+                });
+                data.elements.sort((a, b) => a.distance - b.distance);
+                
+                // Show count
+                html += `<div class="alert alert-success mb-3">
+                    <i class="fas fa-pills"></i> Found <strong>${data.elements.length}</strong> pharmacies within 20km
+                </div>`;
+                
+                // Add pharmacy markers to main map with PLUS symbol
+                data.elements.slice(0, 50).forEach((pharmacy) => {
+                    const pharmacyIcon = L.divIcon({
+                        className: 'pharmacy-icon',
+                        html: '<div style="background:#28a745;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;border:3px solid white;box-shadow:0 0 15px rgba(40,167,69,0.5);"><i class="fas fa-plus" style="font-size:16px;"></i></div>',
+                        iconSize: [32, 32]
+                    });
+                    
+                    const name = pharmacy.tags.name || 'Pharmacy';
+                    const distance = pharmacy.distance.toFixed(1);
+                    const opening_hours = pharmacy.tags.opening_hours || 'Hours not available';
+                    
+                    const marker = L.marker([pharmacy.lat, pharmacy.lon], {icon: pharmacyIcon}).addTo(map);
+                    marker.bindPopup(`
+                        <b>💊 ${name}</b><br>
+                        <span class="text-muted">${distance} km away</span><br>
+                        <small>${opening_hours}</small><br>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${pharmacy.lat},${pharmacy.lon}" 
+                           target="_blank" class="btn btn-sm btn-success popup-btn mt-2">
+                            <i class="fas fa-directions"></i> Get Directions
+                        </a>
+                    `);
+                });
+                
+                // Display top 20 pharmacies in modal list
+                data.elements.slice(0, 20).forEach((pharmacy, index) => {
+                    const name = pharmacy.tags.name || 'Pharmacy';
+                    const distance = pharmacy.distance.toFixed(1);
+                    const opening_hours = pharmacy.tags.opening_hours || 'Hours not available';
+                    const is24x7 = opening_hours.includes('24/7') || opening_hours.includes('24 hours');
+                    
+                    html += `
+                        <div class="service-item p-3 mb-2 border rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6>
+                                        <span class="badge bg-success me-2">${index + 1}</span>
+                                        <i class="fas fa-plus-circle text-success"></i> ${name}
+                                        ${is24x7 ? '<span class="badge bg-success ms-2">24/7</span>' : ''}
+                                    </h6>
+                                    <p class="small text-muted mb-1">
+                                        <i class="fas fa-clock"></i> ${opening_hours}
+                                    </p>
+                                    <span class="badge bg-primary">${distance} km away</span>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${pharmacy.lat},${pharmacy.lon}" 
+                                   target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-directions"></i> Get Directions
+                                </a>
+                                ${pharmacy.tags.phone ? `<a href="tel:${pharmacy.tags.phone}" class="btn btn-sm btn-success"><i class="fas fa-phone"></i> Call</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                pharmacyList.innerHTML = html;
+            } else {
+                pharmacyList.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No pharmacies found within 20km.
+                        <br><small>Try searching in a different area or check nearby hospitals for pharmacy services.</small>
+                        <br><small class="mt-2"><strong>Tip:</strong> Most hospitals have in-house pharmacies.</small>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Pharmacy search error:', error);
+            pharmacyList.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>Could not load pharmacies</strong>
+                    <br>
+                    <p class="small mt-2 mb-2">The pharmacy database is temporarily unavailable. This might be due to:</p>
+                    <ul class="small mb-2">
+                        <li>API rate limit (wait 30 seconds and try again)</li>
+                        <li>Limited pharmacy data in your area</li>
+                        <li>Network connection issue</li>
+                    </ul>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-warning" onclick="searchPharmacies(${lat}, ${lng})">
+                            <i class="fas fa-redo"></i> Try Again
+                        </button>
+                        <a href="https://www.google.com/maps/search/pharmacy+near+me/@${lat},${lng},14z" 
+                           target="_blank" class="btn btn-sm btn-primary">
+                            <i class="fas fa-map"></i> Search on Google Maps
+                        </a>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0">
+                        <strong>Alternative:</strong> Check nearby hospitals - most have in-house pharmacies!
+                    </div>
+                </div>
+            `;
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartClinic AI 🩺</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        /* Global Dark Theme for All Pages */
+        :root {
+            --primary-cyan: #00f5ff;
+            --primary-purple: #8338ec;
+            --primary-magenta: #ff006e;
+            --primary-blue: #3a86ff;
+            --primary-yellow: #ffbe0b;
+            --dark-bg: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-dark: #1a1a2e;
+            --text-muted: #6b7280;
+        }
+
+        /* Apply dark background to all pages by default */
+        body {
+            background: var(--dark-bg) !important;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif !important;
+            color: #ffffff !important;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Ensure consistent font across all elements */
+        * {
+            font-family: 'Poppins', sans-serif !important;
+        }
+
+        /* Better text rendering */
+        body, input, button, select, textarea {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* White text for elements directly on dark background */
+        .container > h1,
+        .container > h2,
+        .container > h3,
+        .container > h4,
+        .container > h5,
+        .container > h6,
+        .container > p,
+        .container > div > h1,
+        .container > div > h2,
+        .container > div > h3,
+        .container > div > h4,
+        .container > div > h5,
+        .container > div > h6,
+        .container > div > p,
+        .row > div > h1,
+        .row > div > h2,
+        .row > div > h3,
+        .row > div > h4,
+        .row > div > h5,
+        .row > div > h6,
+        .row > div > p {
+            color: #ffffff !important;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Global container styling */
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Global card styling */
+        .card {
+            background: var(--card-bg) !important;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 245, 255, 0.2) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 245, 255, 0.1) !important;
+            transition: all 0.3s ease !important;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 245, 255, 0.5) !important;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 245, 255, 0.3) !important;
+        }
+
+        .card-title {
+            color: var(--text-dark) !important;
+            font-weight: 700 !important;
+            font-size: 1.25rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .card-text, .card-body p {
+            color: var(--text-muted) !important;
+            line-height: 1.6 !important;
+            font-size: 0.95rem !important;
+        }
+
+        .card-body {
+            padding: 1.5rem !important;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-purple) 100%) !important;
+            color: white !important;
+            font-weight: 700 !important;
+            border: none !important;
+            padding: 1rem 1.5rem !important;
+        }
+
+        /* Global button styling */
+        .btn {
+            font-family: 'Poppins', sans-serif !important;
+            font-weight: 600 !important;
+            border-radius: 10px !important;
+            padding: 0.6rem 1.5rem !important;
+            transition: all 0.3s ease !important;
+            text-transform: none !important;
+            letter-spacing: 0.5px !important;
+            font-size: 0.95rem !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-purple) 100%) !important;
+            border: none !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(0, 245, 255, 0.3) !important;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(0, 245, 255, 0.5), 0 0 30px rgba(131, 56, 236, 0.4) !important;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--primary-magenta) 100%) !important;
+            border: none !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(255, 190, 11, 0.3) !important;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(255, 190, 11, 0.5), 0 0 30px rgba(255, 0, 110, 0.4) !important;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff006e 0%, #fb5607 100%) !important;
+            border: none !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(255, 0, 110, 0.3) !important;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(255, 0, 110, 0.5) !important;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-blue) 100%) !important;
+            border: none !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(0, 245, 255, 0.3) !important;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(0, 245, 255, 0.5) !important;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 1rem !important;
+            font-size: 0.85rem !important;
+        }
+
+        .btn-lg {
+            padding: 0.8rem 2rem !important;
+            font-size: 1.05rem !important;
+        }
+
+        /* Global badge styling */
+        .badge {
+            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-purple) 100%) !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 20px !important;
+            font-weight: 600 !important;
+        }
+
+        .badge.bg-success {
+            background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--primary-magenta) 100%) !important;
+        }
+
+        /* Global alert styling */
+        .alert {
+            border-radius: 15px !important;
+            border: 2px solid rgba(0, 245, 255, 0.3) !important;
+            padding: 1rem 1.5rem !important;
+            margin-bottom: 1rem !important;
+            font-size: 0.95rem !important;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.1) 0%, rgba(131, 56, 236, 0.1) 100%) !important;
+            color: var(--text-dark) !important;
+            border-color: rgba(0, 245, 255, 0.4) !important;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.15) 0%, rgba(58, 134, 255, 0.15) 100%) !important;
+            color: var(--text-dark) !important;
+            border-color: rgba(0, 245, 255, 0.4) !important;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(255, 190, 11, 0.15) 0%, rgba(255, 0, 110, 0.15) 100%) !important;
+            color: var(--text-dark) !important;
+            border-color: rgba(255, 190, 11, 0.4) !important;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.15) 0%, rgba(251, 86, 7, 0.15) 100%) !important;
+            color: var(--text-dark) !important;
+            border-color: rgba(255, 0, 110, 0.4) !important;
+        }
+
+        /* Global table styling */
+        .table {
+            background: var(--card-bg) !important;
+            border-radius: 15px !important;
+            overflow: hidden;
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-purple) 100%) !important;
+            color: white !important;
+        }
+
+        .table tbody tr {
+            color: var(--text-dark) !important;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(0, 245, 255, 0.1) !important;
+        }
+
+        /* Global form styling */
+        .form-control, .form-select {
+            border: 2px solid #e3e6f0 !important;
+            border-radius: 10px !important;
+            transition: all 0.3s ease !important;
+            padding: 0.6rem 1rem !important;
+            font-size: 0.95rem !important;
+            background: white !important;
+            color: var(--text-dark) !important;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-cyan) !important;
+            box-shadow: 0 0 0 0.2rem rgba(0, 245, 255, 0.15) !important;
+            background: white !important;
+        }
+
+        .form-label {
+            color: var(--text-dark) !important;
+            font-weight: 600 !important;
+            margin-bottom: 0.5rem !important;
+            font-size: 0.95rem !important;
+        }
+
+        .form-text {
+            color: var(--text-muted) !important;
+            font-size: 0.875rem !important;
+        }
+
+        textarea.form-control {
+            min-height: 100px !important;
+        }
+
+        /* Global text colors and typography */
+        .text-primary {
+            color: var(--primary-cyan) !important;
+        }
+
+        .text-muted {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        /* Headings - white on dark background, dark in cards */
+        h1 {
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            font-size: 2.5rem !important;
+            margin-bottom: 1rem !important;
+            line-height: 1.2 !important;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 2rem !important;
+            margin-bottom: 1rem !important;
+            line-height: 1.3 !important;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        h3 {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 1.5rem !important;
+            margin-bottom: 0.75rem !important;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        h4 {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 1.25rem !important;
+            margin-bottom: 0.75rem !important;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        h5 {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        h6 {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 1rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Dark text only inside cards */
+        .card h1,
+        .card h2,
+        .card h3,
+        .card h4,
+        .card h5,
+        .card h6 {
+            color: var(--text-dark) !important;
+            text-shadow: none !important;
+        }
+
+        .card p,
+        .card .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        /* White text for card headers */
+        .card-header h1,
+        .card-header h2,
+        .card-header h3,
+        .card-header h4,
+        .card-header h5,
+        .card-header h6 {
+            color: white !important;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            margin-bottom: 1rem !important;
+            line-height: 1.6 !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .card p {
+            color: var(--text-muted) !important;
+        }
+
+        a {
+            color: var(--primary-cyan) !important;
+            text-decoration: none !important;
+            transition: all 0.3s ease !important;
+        }
+
+        a:hover {
+            color: var(--primary-purple) !important;
+            text-decoration: none !important;
+        }
+
+        /* White text for labels and small text outside cards */
+        label, small, .small {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .card label,
+        .card small,
+        .card .small {
+            color: var(--text-dark) !important;
+        }
+
+        /* Navbar with gradient */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-purple) 50%, var(--primary-magenta) 100%) !important;
+            background-size: 200% 200%;
+            animation: navGradient 5s ease infinite;
+        }
+
+        @keyframes navGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+    </style>
+    <style>
+        /* Base styles */
+        :root {
+            --primary-color: #4e73df;
+            --primary-rgb: 78, 115, 223;
+            --info-color: #36b9cc;
+            --success-color: #1cc88a;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+        }
+
+        /* Navbar brand styling */
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+
+        .navbar-brand i {
+            font-size: 2rem;
+            color: #fff;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+        }
+
+        .navbar-brand .stethoscope-icon {
+            animation: pulse 2s infinite;
+            display: inline-block;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .nav-link {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 1.1rem !important;
+            font-family: 'Poppins', sans-serif !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 10px 20px !important;
+            margin: 0 5px;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: #ffffff;
+            transform: translateX(-50%);
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .nav-link:hover {
+            color: #ffffff !important;
+            transform: translateY(-3px) scale(1.05);
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .nav-link:hover::before {
+            width: 80%;
+        }
+
+        .nav-link:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        @keyframes navPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .nav-link:focus {
+            animation: navPulse 0.6s ease;
+        }
+
+        /* Nav link entrance animation */
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-item {
+            animation: slideInDown 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .nav-item:nth-child(1) { animation-delay: 0.1s; }
+        .nav-item:nth-child(2) { animation-delay: 0.2s; }
+        .nav-item:nth-child(3) { animation-delay: 0.3s; }
+        .nav-item:nth-child(4) { animation-delay: 0.4s; }
+        .nav-item:nth-child(5) { animation-delay: 0.5s; }
+        .nav-item:nth-child(6) { animation-delay: 0.6s; }
+        .nav-item:nth-child(7) { animation-delay: 0.7s; }
+
+        /* Emergency Button */
+        .emergency-btn {
+            background: linear-gradient(135deg, #e74a3b 0%, #ff6b6b 100%) !important;
+            color: #ffffff !important;
+            border-radius: 25px !important;
+            padding: 8px 20px !important;
+            animation: emergencyPulse 2s infinite;
+        }
+
+        .emergency-btn:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #e74a3b 100%) !important;
+            transform: scale(1.1) !important;
+            box-shadow: 0 0 20px rgba(231, 74, 59, 0.6) !important;
+        }
+
+        @keyframes emergencyPulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(231, 74, 59, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(231, 74, 59, 0.8); }
+        }
+
+        /* Emergency Modal */
+        .emergency-modal .modal-header {
+            background: linear-gradient(135deg, #e74a3b 0%, #ff6b6b 100%);
+            color: white;
+        }
+
+        .hospital-card {
+            border-left: 4px solid #e74a3b;
+            transition: all 0.3s ease;
+        }
+
+        .hospital-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .distance-badge {
+            background: linear-gradient(135deg, #4e73df 0%, #36b9cc 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background-color: #e6fff0;
+            color: #0d6832;
+        }
+
+        .alert-danger {
+            background-color: #ffe6e6;
+            color: #721c24;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* Animations */
+        .floating-animation {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .rotate-animation {
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn {
+            border-radius: 30px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+    <style>
+        .chatbot-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .chatbot-button {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #00f5ff 0%, #ff006e 50%, #ffbe0b 100%);
+            background-size: 200% 200%;
+            animation: gradientMove 3s ease infinite;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0, 245, 255, 0.4), 0 0 40px rgba(255, 0, 110, 0.3);
+            position: relative;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-button:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 12px 35px rgba(0, 245, 255, 0.6), 0 0 60px rgba(255, 0, 110, 0.5);
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .chatbot-button i {
+            font-size: 32px;
+            color: white;
+            animation: robotBounce 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+        }
+
+        .bot-icon {
+            font-size: 40px;
+            animation: robotBounce 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9));
+            line-height: 1;
+        }
+
+        .header-icon {
+            font-size: 28px;
+            margin-right: 10px;
+            animation: heartbeat 1.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+            display: inline-block;
+        }
+
+        @keyframes robotBounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-5px) rotate(-5deg); }
+            75% { transform: translateY(-5px) rotate(5deg); }
+        }
+
+        .pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 245, 255, 0.4) 0%, rgba(255, 0, 110, 0.2) 100%);
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0;
+            }
+        }
+
+        .chatbot-container {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+        }
+
+        .chatbot-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #00f5ff 0%, #8338ec 50%, #ff006e 100%);
+            background-size: 200% 200%;
+            animation: gradientMove 5s ease infinite;
+            border-radius: 15px 15px 0 0;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .chatbot-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .chatbot-title i {
+            animation: heartbeat 1.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+        }
+
+        .chatbot-title .header-icon {
+            animation: heartbeat 1.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            10%, 30% { transform: scale(1.1); }
+            20%, 40% { transform: scale(1); }
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 80%;
+            line-height: 1.6;
+            word-wrap: break-word;
+            animation: messageSlide 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bot-message {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            margin-right: auto;
+            color: #1a1a2e !important;
+            border: 2px solid rgba(0, 245, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .bot-message p,
+        .bot-message ul,
+        .bot-message li,
+        .bot-message strong {
+            color: #1a1a2e !important;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #00f5ff 0%, #8338ec 100%);
+            color: white !important;
+            margin-left: auto;
+            box-shadow: 0 4px 12px rgba(0, 245, 255, 0.3);
+        }
+
+        .chatbot-input {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .chatbot-input button {
+            background: linear-gradient(135deg, #00f5ff 0%, #8338ec 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 245, 255, 0.4);
+        }
+
+        .chatbot-input button:hover {
+            transform: scale(1.15) rotate(15deg);
+            box-shadow: 0 6px 20px rgba(0, 245, 255, 0.6);
+        }
+
+        .chatbot-input button:active {
+            transform: scale(0.95);
+        }
+
+        .ai-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 10px 0;
+        }
+
+        .ai-list-item {
+            padding: 10px 15px;
+            margin: 8px 0;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-left: 4px solid #00f5ff;
+            border-radius: 0 12px 12px 0;
+            color: #1a1a2e !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .medication-badge {
+            background: linear-gradient(135deg, #1cc88a 0%, #17a673 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin: 0 2px;
+            display: inline-block;
+        }
+
+        .specialist-badge {
+            background: linear-gradient(135deg, #4e73df 0%, #36b9cc 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin: 0 2px;
+            display: inline-block;
+        }
+
+        .ai-warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+            border-left: 4px solid #f6c23e;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+            color: #856404;
+            font-weight: 500;
+        }
+
+        .bot-message h5, .bot-message h6 {
+            color: #4e73df;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 5px;
+        }
+
+        .bot-message p {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .bot-message strong {
+            color: #2e59d9;
+        }
+
+        .chatbot-container {
+            width: 400px;
+            height: 550px;
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0;
+            z-index: 9999;
+        }
+
+        .chatbot-container.fullscreen .chatbot-header {
+            border-radius: 0;
+        }
+
+        .chatbot-container.fullscreen .chatbot-messages {
+            font-size: 1em;
+            padding: 25px;
+        }
+
+        .chatbot-container.fullscreen .message {
+            max-width: 70%;
+            padding: 15px 20px;
+        }
+
+        .chatbot-container.fullscreen .chatbot-input {
+            padding: 20px;
+        }
+
+        .chatbot-container.fullscreen .chatbot-input input {
+            padding: 15px 20px;
+            font-size: 1.1em;
+        }
+
+        .chatbot-header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.1);
+        }
+
+        .chatbot-messages {
+            font-size: 0.9em;
+        }
+
+        .welcome-message {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid rgba(0, 245, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-message p,
+        .welcome-message strong {
+            color: #1a1a2e !important;
+        }
+
+        .ai-list-item:hover {
+            transform: translateX(5px);
+            border-left-color: #ff006e;
+            box-shadow: 0 4px 12px rgba(0, 245, 255, 0.2);
+        }
+
+        .list-icon {
+            margin-right: 8px;
+        }
+
+        .ai-list-item {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+    <style>
+        /* Base styles */
+        body {
+            padding-right: 0 !important;
+            overflow-y: scroll;
+        }
+
+        /* Navigation styles */
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-link {
+            font-weight: 500;
+        }
+
+        /* Modal styles */
+        .modal {
+            transition: opacity 0.15s linear;
+            padding-right: 0 !important;
+        }
+
+        .modal-backdrop {
+            transition: opacity 0.15s linear;
+        }
+
+        .modal-content {
+            transform: none !important;
+            animation: none !important;
+        }
+
+        .modal.fade .modal-dialog {
+            transform: none !important;
+            transition: none !important;
+        }
+
+        .modal.show {
+            opacity: 1;
+        }
+
+        .modal-backdrop.show {
+            opacity: 0.5;
+        }
+
+        /* Button styles */
+        .btn {
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn .spinner-border {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+        }
+
+        /* Form styles */
+        .form-control {
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+        }
+
+        /* Card styles */
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <style>
+        /* Prevent blinking and improve transitions */
+        .modal {
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .modal-backdrop {
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .modal-content {
+            animation: none !important;
+            transform: none !important;
+        }
+
+        .modal.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .modal-backdrop.show {
+            opacity: 0.5;
+        }
+
+        /* Prevent page shift when modal opens */
+        body {
+            padding-right: 0 !important;
+        }
+
+        body.modal-open {
+            overflow-y: scroll !important;
+            padding-right: 0 !important;
+        }
+
+        /* Smooth button transitions */
+        .btn {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .spinner-border {
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        /* Doctor card hover effect */
+        .doctor-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Form input focus effect */
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+            border-color: #80bdff;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                🩺 SmartClinic AI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('list_hospitals') }}">Hospitals</a>
+                    </li>
+                    {% if session.get('user_id') %}
+                        <li class="nav-item">
+                            {% if session.get('user_type') == 'patient' %}
+                                <a class="nav-link" href="{{ url_for('patient_dashboard') }}">Dashboard</a>
+                            {% elif session.get('user_type') == 'doctor' %}
+                                <a class="nav-link" href="{{ url_for('doctor_dashboard') }}">Dashboard</a>
+                            {% elif session.get('user_type') == 'hospital_admin' %}
+                                <a class="nav-link" href="{{ url_for('hospital_dashboard') }}">Dashboard</a>
+                            {% endif %}
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+
+        <!-- Emergency Modal -->
+        <div class="modal fade emergency-modal" id="emergencyModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            🚑 Emergency - Nearby Hospitals
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="locationStatus" class="alert alert-info">
+                            ⏳ Getting your location...
+                        </div>
+                        <div id="emergencyNumbers" class="mb-4" style="display:none;">
+                            <h6>📞 Emergency Numbers:</h6>
+                            <div class="row">
+                                <div class="col-md-4"><strong>Ambulance:</strong> 108</div>
+                                <div class="col-md-4"><strong>Police:</strong> 100</div>
+                                <div class="col-md-4"><strong>Fire:</strong> 101</div>
+                            </div>
+                        </div>
+                        <div id="nearbyHospitals"></div>
+                        <div id="mapContainer" style="height: 300px; display:none;" class="mt-3 rounded"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="tel:108" class="btn btn-danger">
+                            📞 Call Ambulance (108)
+                        </a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Chatbot -->
+        <div class="chatbot-widget">
+            <div class="chatbot-button" onclick="toggleChatbot()">
+                <div class="bot-icon">🤖</div>
+                <span class="pulse"></span>
+            </div>
+            <div class="chatbot-container" id="chatbotContainer">
+                <div class="chatbot-header">
+                    <div class="chatbot-title">
+                        <span class="header-icon">💊</span>
+                        SmartClinic AI Assistant
+                    </div>
+                    <div class="chatbot-header-buttons">
+                        <button class="header-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                            ⛶
+                        </button>
+                        <button class="header-btn" onclick="toggleChatbot()" title="Close">
+                            ✖️
+                        </button>
+                    </div>
+                </div>
+                <div class="chatbot-messages" id="chatbotMessages">
+                    <div class="message bot-message welcome-message">
+                        <p>👋 Hello! I'm your <strong>SmartClinic AI</strong> assistant.</p>
+                        <p class="mt-2">I can help you with:</p>
+                        <ul class="ai-list">
+                            <li class="ai-list-item"><span class="list-icon">🩺</span> Medical advice & symptoms</li>
+                            <li class="ai-list-item"><span class="list-icon">💊</span> Medication information</li>
+                            <li class="ai-list-item"><span class="list-icon">👨‍⚕️</span> Finding the right specialist</li>
+                            <li class="ai-list-item"><span class="list-icon">📅</span> Booking appointments</li>
+                        </ul>
+                        <p class="mt-2">How can I assist you today?</p>
+                    </div>
+                </div>
+                <div class="chatbot-input">
+                    <input type="text" id="userInput" placeholder="Type your message...">
+                    <button onclick="sendMessage()">
+                        ✈️
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let isFullscreen = false;
+
+    function toggleChatbot() {
+        const container = document.getElementById('chatbotContainer');
+        if (isFullscreen) {
+            toggleFullscreen();
+        }
+        container.style.display = container.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    function toggleFullscreen() {
+        const container = document.getElementById('chatbotContainer');
+        const icon = document.getElementById('fullscreenIcon');
+        
+        isFullscreen = !isFullscreen;
+        
+        if (isFullscreen) {
+            container.classList.add('fullscreen');
+            icon.classList.remove('fa-expand');
+            icon.classList.add('fa-compress');
+            document.body.style.overflow = 'hidden';
+        } else {
+            container.classList.remove('fullscreen');
+            icon.classList.remove('fa-compress');
+            icon.classList.add('fa-expand');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('userInput');
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Add user message
+        addMessage(message, 'user');
+        input.value = '';
+
+        // Show typing indicator
+        addMessage('Typing...', 'bot', 'typing-indicator');
+
+        // Send to AI backend
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove typing indicator
+            const typingIndicator = document.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+            
+            // Add AI response
+            addMessage(data.response || data.error || 'Sorry, I could not process that.', 'bot');
+        })
+        .catch(error => {
+            // Remove typing indicator
+            const typingIndicator = document.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+            
+            addMessage('Sorry, I am having trouble connecting. Please try again.', 'bot');
+        });
+    }
+
+    function addMessage(text, sender, extraClass) {
+        const messages = document.getElementById('chatbotMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message ${extraClass || ''}`;
+        
+        if (sender === 'bot' && !extraClass) {
+            messageDiv.innerHTML = formatAIResponse(text);
+        } else {
+            messageDiv.textContent = text;
+        }
+        
+        messages.appendChild(messageDiv);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function formatAIResponse(text) {
+        let formatted = text;
+        
+        formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        formatted = formatted.replace(/^### (.+)$/gm, '<h6 class="mt-3 mb-2" style="color:#4e73df;font-weight:bold;">$1</h6>');
+        formatted = formatted.replace(/^## (.+)$/gm, '<h5 class="mt-3 mb-2" style="color:#4e73df;font-weight:bold;">$1</h5>');
+        formatted = formatted.replace(/^# (.+)$/gm, '<h5 class="mt-3 mb-2" style="color:#4e73df;font-weight:bold;">$1</h5>');
+        
+        const lines = formatted.split('\n');
+        let result = [];
+        let inList = false;
+        
+        for (let line of lines) {
+            line = line.trim();
+            if (line.startsWith('- ') || line.startsWith('• ') || line.match(/^\d+\. /)) {
+                if (!inList) {
+                    result.push('<ul class="ai-list">');
+                    inList = true;
+                }
+                let content = line.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
+                content = highlightMedications(content);
+                result.push('<li class="ai-list-item">' + content + '</li>');
+            } else {
+                if (inList) {
+                    result.push('</ul>');
+                    inList = false;
+                }
+                if (line) {
+                    line = highlightMedications(line);
+                    if (line.includes('⚠️') || line.toLowerCase().includes('consult') || line.toLowerCase().includes('doctor')) {
+                        result.push('<div class="ai-warning">' + line + '</div>');
+                    } else {
+                        result.push('<p class="mb-2">' + line + '</p>');
+                    }
+                }
+            }
+        }
+        if (inList) result.push('</ul>');
+        
+        return result.join('');
+    }
+
+    function highlightMedications(text) {
+        const medications = ['Paracetamol', 'Acetaminophen', 'Ibuprofen', 'Aspirin', 'Amoxicillin', 'Cetirizine', 'Omeprazole', 'Metformin', 'Azithromycin', 'Dolo', 'Crocin', 'Combiflam'];
+        medications.forEach(med => {
+            const regex = new RegExp('\\b(' + med + ')\\b', 'gi');
+            text = text.replace(regex, '<span class="medication-badge">$1</span>');
+        });
+        
+        const specialists = ['General Physician', 'Cardiologist', 'Neurologist', 'Orthopedic', 'Dermatologist', 'Pediatrician', 'ENT', 'Ophthalmologist', 'Gynecologist', 'Psychiatrist'];
+        specialists.forEach(spec => {
+            const regex = new RegExp('\\b(' + spec + ')\\b', 'gi');
+            text = text.replace(regex, '<span class="specialist-badge">$1</span>');
+        });
+        
+        return text;
+    }
+
+    // Allow Enter key to send message
+    document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+
+        // Emergency - Find Nearby Hospitals
+        function findNearbyHospitals() {
+            const modal = new bootstrap.Modal(document.getElementById('emergencyModal'));
+            modal.show();
+            
+            const statusDiv = document.getElementById('locationStatus');
+            const hospitalsDiv = document.getElementById('nearbyHospitals');
+            const emergencyNumbers = document.getElementById('emergencyNumbers');
+            const mapContainer = document.getElementById('mapContainer');
+            
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Getting your location...';
+            statusDiv.className = 'alert alert-info';
+            hospitalsDiv.innerHTML = '';
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        statusDiv.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Location found! Searching for nearby hospitals...';
+                        emergencyNumbers.style.display = 'block';
+                        
+                        // Show map
+                        mapContainer.style.display = 'block';
+                        const map = L.map('mapContainer').setView([lat, lng], 14);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '© OpenStreetMap'
+                        }).addTo(map);
+                        
+                        // Add user marker
+                        L.marker([lat, lng], {
+                            icon: L.divIcon({
+                                className: 'user-marker',
+                                html: '<i class="fas fa-user-circle" style="color:#e74a3b;font-size:30px;"></i>',
+                                iconSize: [30, 30]
+                            })
+                        }).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
+                        
+                        // Search for hospitals using Overpass API (OpenStreetMap)
+                        const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];node["amenity"="hospital"](around:5000,${lat},${lng});out;`;
+                        
+                        fetch(overpassUrl)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.elements && data.elements.length > 0) {
+                                    statusDiv.innerHTML = `<i class="fas fa-check-circle me-2"></i> Found ${data.elements.length} hospitals nearby!`;
+                                    statusDiv.className = 'alert alert-success';
+                                    
+                                    let hospitalsHtml = '<div class="row">';
+                                    data.elements.slice(0, 6).forEach((hospital, index) => {
+                                        const distance = calculateDistance(lat, lng, hospital.lat, hospital.lon);
+                                        const name = hospital.tags.name || 'Hospital';
+                                        
+                                        // Add marker to map
+                                        L.marker([hospital.lat, hospital.lon], {
+                                            icon: L.divIcon({
+                                                className: 'hospital-marker',
+                                                html: '<i class="fas fa-hospital" style="color:#4e73df;font-size:25px;"></i>',
+                                                iconSize: [25, 25]
+                                            })
+                                        }).addTo(map).bindPopup(`<b>${name}</b><br>${distance.toFixed(1)} km away`);
+                                        
+                                        hospitalsHtml += `
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card hospital-card">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title"><i class="fas fa-hospital text-primary me-2"></i>${name}</h6>
+                                                        <p class="mb-2"><span class="distance-badge">${distance.toFixed(1)} km</span></p>
+                                                        <a href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lon}" 
+                                                           target="_blank" class="btn btn-sm btn-primary">
+                                                            <i class="fas fa-directions"></i> Get Directions
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    });
+                                    hospitalsHtml += '</div>';
+                                    hospitalsDiv.innerHTML = hospitalsHtml;
+                                    
+                                    // Fit map to show all markers
+                                    const bounds = L.latLngBounds([[lat, lng]]);
+                                    data.elements.slice(0, 6).forEach(h => bounds.extend([h.lat, h.lon]));
+                                    map.fitBounds(bounds, {padding: [20, 20]});
+                                } else {
+                                    statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> No hospitals found nearby. Showing registered hospitals.';
+                                    statusDiv.className = 'alert alert-warning';
+                                    showRegisteredHospitals();
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                statusDiv.innerHTML = '<i class="fas fa-info-circle me-2"></i> Showing registered hospitals from our system.';
+                                statusDiv.className = 'alert alert-info';
+                                showRegisteredHospitals();
+                            });
+                    },
+                    function(error) {
+                        statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Location access denied. Please enable location services.';
+                        statusDiv.className = 'alert alert-warning';
+                        emergencyNumbers.style.display = 'block';
+                        showRegisteredHospitals();
+                    }
+                );
+            } else {
+                statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Geolocation not supported by your browser.';
+                statusDiv.className = 'alert alert-danger';
+                showRegisteredHospitals();
+            }
+        }
+        
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        function showRegisteredHospitals() {
+            const hospitalsDiv = document.getElementById('nearbyHospitals');
+            hospitalsDiv.innerHTML = `
+                <h6 class="mb-3"><i class="fas fa-hospital text-primary"></i> Registered Hospitals:</h6>
+                <p>Visit our <a href="/hospitals">Hospitals Page</a> to see all registered hospitals and book appointments.</p>
+                <a href="/hospitals" class="btn btn-primary"><i class="fas fa-hospital"></i> View All Hospitals</a>
+            `;
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

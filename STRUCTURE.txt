@@ -1,0 +1,83 @@
+DOCTOR APPOINTMENT SYSTEM - CLEAN PROJECT STRUCTURE
+====================================================
+
+doctor-appointment-system/
+│
+├── 📁 backend/                          # Backend API (Flask + MySQL)
+│   ├── app.py                           # Main Flask application
+│   ├── models.py                        # Database models
+│   ├── config.py                        # Configuration
+│   ├── requirements.txt                 # Python dependencies
+│   ├── .env                            # Environment variables (secrets)
+│   ├── .env.example                    # Environment template
+│   ├── clinic_db.sql                   # Database schema
+│   ├── setup_db.py                     # Database setup script
+│   └── README.md                       # Backend documentation
+│
+├── 📁 frontend/                         # Frontend Templates
+│   ├── templates/                       # Jinja2 HTML templates
+│   │   ├── base.html                   # Base template
+│   │   ├── index.html                  # Homepage
+│   │   ├── login.html                  # Login page
+│   │   ├── register.html               # Registration
+│   │   ├── hospitals.html              # Hospital listing
+│   │   ├── hospital_details.html       # Hospital details
+│   │   ├── book_appointment.html       # Appointment booking
+│   │   ├── emergency.html              # Emergency services
+│   │   ├── location_test.html          # Location testing
+│   │   │
+│   │   ├── 📁 patient/                 # Patient interface
+│   │   │   ├── dashboard.html
+│   │   │   ├── appointment_details.html
+│   │   │   ├── medical_history.html
+│   │   │   ├── emergency_contacts.html
+│   │   │   └── ambulance_bookings.html
+│   │   │
+│   │   ├── 📁 doctor/                  # Doctor interface
+│   │   │   ├── dashboard.html
+│   │   │   └── appointment_details.html
+│   │   │
+│   │   └── 📁 hospital/                # Hospital admin interface
+│   │       ├── dashboard.html
+│   │       ├── register.html
+│   │       └── add_doctor.html
+│   │
+│   └── README.md                        # Frontend documentation
+│
+├── 📁 .git/                             # Git repository
+├── 📁 .venv/                            # Python virtual environment
+├── 📁 .vscode/                          # VS Code settings
+│
+├── 📄 README.md                         # Main project documentation
+├── 📄 CLEANUP_SUMMARY.md                # Cleanup summary
+├── 📄 STRUCTURE.txt                     # This file
+├── 📄 run.bat                           # Quick start script
+├── 📄 .gitignore                        # Git ignore rules
+│
+└── 📁 Deployment Files (Optional)
+    ├── Procfile                         # Heroku deployment
+    └── deploy_heroku.bat                # Heroku deploy script (Windows)
+
+====================================================
+QUICK START
+====================================================
+
+1. Start the server:
+   .\run.bat
+
+2. Open browser:
+   http://localhost:5000
+
+3. Login with test accounts:
+   - Patient: patient@test.com / password
+   - Doctor: doctor@test.com / password
+   - Admin: admin@test.com / password
+
+====================================================
+DEVELOPMENT
+====================================================
+
+Backend Changes:  Edit files in backend/
+Frontend Changes: Edit files in frontend/templates/
+
+====================================================

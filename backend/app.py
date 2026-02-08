@@ -853,5 +853,114 @@ User message: """
             'response': "I'm having trouble processing your request. Please try again in a moment."
         })
 
+@app.route('/setup-database-now')
+def setup_database():
+    """One-time database setup endpoint - visit this URL to initialize the database"""
+    try:
+        # Create all tables
+        with app.app_context():
+            db.create_all()
+        
+        # Check if data already exists
+        if User.query.first():
+            return jsonify({
+                'status': 'success',
+                'message': 'Database already initialized!',
+                'tables': 'All tables exist',
+                'data': 'Sample data already present'
+            })
+        
+        # Add sample users
+        patient_user = User(
+            email='patient@example.com',
+            password_hash=generate_password_hash('password123'),
+            name='John Patient',
+            user_type='patient',
+            phone='1234567890',
+            age=30,
+            gender='Male',
+            blood_group='O+',
+            address='123 Patient St'
+        )
+        
+        hospital_admin = User(
+            email='admin@hospital.com',
+            password_hash=generate_password_hash('password123'),
+            name='Hospital Admin',
+            user_type='hospital_admin',
+            phone='9876543210'
+        )
+        
+        doctor_user = User(
+            email='doctor@example.com',
+            password_hash=generate_password_hash('password123'),
+            name='Dr. Smith',
+            user_type='doctor',
+            phone='5555555555'
+        )
+        
+        db.session.add_all([patient_user, hospital_admin, doctor_user])
+        db.session.commit()
+        
+        # Add hospital
+        hospital = Hospital(
+            name='City General Hospital',
+            address='456 Hospital Ave, Medical District',
+            contact='9876543210',
+            admin_id=hospital_admin.id,
+            description='Leading healthcare provider'
+        )
+        db.session.add(hospital)
+        db.session.commit()
+        
+        # Add doctor
+        doctor = Doctor(
+            user_id=doctor_user.id,
+            hospital_id=hospital.id,
+            specialization='General Medicine',
+            experience=10,
+            consultation_fee=50.00,
+            about='Experienced general physician'
+        )
+        db.session.add(doctor)
+        db.session.commit()
+        
+        # Add sample appointment
+        appointment = Appointment(
+            doctor_id=doctor.id,
+            patient_id=patient_user.id,
+            hospital_id=hospital.id,
+            appointment_time=datetime.now() + timedelta(days=1),
+            symptoms='Regular checkup',
+            status='pending'
+        )
+        db.session.add(appointment)
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'message': '✅ Database initialized successfully!',
+            'tables_created': 'All tables created',
+            'sample_data': {
+                'patients': 1,
+                'doctors': 1,
+                'hospitals': 1,
+                'appointments': 1
+            },
+            'login_credentials': {
+                'patient': 'patient@example.com / password123',
+                'doctor': 'doctor@example.com / password123',
+                'hospital': 'admin@hospital.com / password123'
+            },
+            'next_step': 'Visit https://smartcinicai.onrender.com to use the app!'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

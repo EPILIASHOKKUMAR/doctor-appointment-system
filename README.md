@@ -1,6 +1,7 @@
 # 🏥 SmartClinic AI - Doctor Appointment System
 
 AI-powered doctor appointment booking system with modern dark theme and intelligent chatbot.
+https://smartcinicai.onrender.com/
 
 ## ✨ Features
 

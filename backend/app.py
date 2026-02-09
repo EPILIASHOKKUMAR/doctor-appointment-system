@@ -161,28 +161,79 @@ def role_required(allowed_roles):
 
 @app.route('/')
 def index():
-    hospitals = Hospital.query.all()
-    
-    # Get real counts from database
-    total_doctors = Doctor.query.count()
-    total_hospitals = Hospital.query.count()
-    total_appointments = Appointment.query.count()
-    
-    # Get monthly appointments (current month)
-    from datetime import datetime
-    current_month = datetime.now().month
-    current_year = datetime.now().year
-    monthly_appointments = Appointment.query.filter(
-        db.extract('month', Appointment.created_at) == current_month,
-        db.extract('year', Appointment.created_at) == current_year
-    ).count()
-    
-    return render_template('index.html', 
-                         hospitals=hospitals,
-                         total_doctors=total_doctors,
-                         total_hospitals=total_hospitals,
-                         total_appointments=total_appointments,
-                         monthly_appointments=monthly_appointments)
+    try:
+        hospitals = Hospital.query.all()
+        
+        # Get real counts from database
+        total_doctors = Doctor.query.count()
+        total_hospitals = Hospital.query.count()
+        total_appointments = Appointment.query.count()
+        
+        # Get monthly appointments (current month)
+        from datetime import datetime
+        current_month = datetime.now().month
+        current_year = datetime.now().year
+        monthly_appointments = Appointment.query.filter(
+            db.extract('month', Appointment.created_at) == current_month,
+            db.extract('year', Appointment.created_at) == current_year
+        ).count()
+        
+        return render_template('index.html', 
+                             hospitals=hospitals,
+                             total_doctors=total_doctors,
+                             total_hospitals=total_hospitals,
+                             total_appointments=total_appointments,
+                             monthly_appointments=monthly_appointments)
+    except Exception as e:
+        # Database not initialized - show setup message
+        return f"""
+        <html>
+        <head>
+            <title>SmartClinic AI - Setup Required</title>
+            <style>
+                body {{
+                    font-family: 'Poppins', sans-serif;
+                    background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
+                    color: white;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                }}
+                .container {{
+                    text-align: center;
+                    padding: 40px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 20px;
+                    border: 2px solid #00f5ff;
+                    box-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+                }}
+                h1 {{ color: #00f5ff; margin-bottom: 20px; }}
+                .btn {{
+                    display: inline-block;
+                    padding: 15px 40px;
+                    background: linear-gradient(135deg, #00f5ff, #ff006e);
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 10px;
+                    font-size: 18px;
+                    margin-top: 20px;
+                    transition: transform 0.3s;
+                }}
+                .btn:hover {{ transform: scale(1.05); }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🏥 SmartClinic AI</h1>
+                <p>Database setup required!</p>
+                <p>Click the button below to initialize the database:</p>
+                <a href="/setup-database-now" class="btn">Initialize Database</a>
+            </div>
+        </body>
+        </html>
+        """
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

@@ -1027,5 +1027,81 @@ def setup_database():
             'message': str(e)
         }), 500
 
+@app.route('/import-production-data', methods=['POST'])
+def import_production_data():
+    """
+    Import data from production_data.sql file
+    Security: Requires a secret key to prevent unauthorized access
+    """
+    try:
+        # Get the secret key from request
+        data = request.get_json()
+        secret = data.get('secret', '')
+        
+        # Simple security check - you can change this secret
+        if secret != 'import-data-2026':
+            return jsonify({
+                'status': 'error',
+                'message': 'Unauthorized: Invalid secret key'
+            }), 403
+        
+        # Read the SQL file
+        import os
+        sql_file_path = os.path.join(os.path.dirname(__file__), 'production_data.sql')
+        
+        if not os.path.exists(sql_file_path):
+            return jsonify({
+                'status': 'error',
+                'message': 'production_data.sql file not found. Please upload it first.'
+            }), 404
+        
+        with open(sql_file_path, 'r', encoding='utf-8') as f:
+            sql_content = f.read()
+        
+        # Parse and execute SQL statements
+        statements = sql_content.split(';')
+        executed = 0
+        errors = []
+        
+        for statement in statements:
+            statement = statement.strip()
+            if statement and not statement.startswith('--') and 'INSERT INTO' in statement:
+                try:
+                    db.session.execute(db.text(statement))
+                    executed += 1
+                except Exception as e:
+                    error_msg = str(e)
+                    # Skip duplicate entry errors
+                    if 'Duplicate entry' not in error_msg and 'UNIQUE constraint' not in error_msg:
+                        errors.append(f"Error in statement: {error_msg[:100]}")
+        
+        db.session.commit()
+        
+        # Count imported data
+        total_users = User.query.count()
+        total_hospitals = Hospital.query.count()
+        total_doctors = Doctor.query.count()
+        
+        return jsonify({
+            'status': 'success',
+            'message': '✅ Data imported successfully!',
+            'executed_statements': executed,
+            'errors': errors if errors else 'None',
+            'current_data': {
+                'users': total_users,
+                'hospitals': total_hospitals,
+                'doctors': total_doctors
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

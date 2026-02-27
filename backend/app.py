@@ -1027,6 +1027,40 @@ def setup_database():
             'message': str(e)
         }), 500
 
+@app.route('/reset-user-password', methods=['POST'])
+def reset_user_password():
+    """
+    Reset password for a user (for admin use)
+    """
+    try:
+        data = request.get_json()
+        secret = data.get('secret', '')
+        
+        if secret != 'import-data-2026':
+            return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+        
+        email = data.get('email', '')
+        new_password = data.get('new_password', '')
+        
+        if not email or not new_password:
+            return jsonify({'status': 'error', 'message': 'Email and password required'}), 400
+        
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({'status': 'error', 'message': 'User not found'}), 404
+        
+        user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Password reset successfully for {email}'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/smart-import-data', methods=['POST'])
 def smart_import_data():
     """

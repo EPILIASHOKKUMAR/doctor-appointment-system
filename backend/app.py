@@ -28,7 +28,7 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 if GEMINI_API_KEY:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         print("✓ Gemini AI configured successfully")
     except Exception as e:
         print(f"AI Error: {e}")
@@ -790,23 +790,31 @@ def chat_with_ai():
     try:
         data = request.get_json()
         user_message = data.get('message', '').strip()
+        
+        print(f"Received message: {user_message}")
+        
         if not user_message:
             return jsonify({'error': 'Message is required'}), 400
+            
         if not model:
+            print("Warning: Model not initialized - running in demo mode")
             return jsonify({
                 'response': "I'm currently in demo mode. To enable real AI responses, please add your Gemini API key to the .env file."
             })
+            
         total_hospitals = Hospital.query.count()
         total_doctors = Doctor.query.count()
         total_patients = User.query.filter_by(user_type='patient').count()
         total_appointments = Appointment.query.count()
         pending_appointments = Appointment.query.filter_by(status='pending').count()
         completed_appointments = Appointment.query.filter_by(status='completed').count()
+        
         hospitals_info = []
         hospitals = Hospital.query.all()
         for hospital in hospitals:
             doctors_count = Doctor.query.filter_by(hospital_id=hospital.id).count()
             hospitals_info.append(f"- {hospital.name} ({doctors_count} doctors)")
+        
         specializations = db.session.query(Doctor.specialization).distinct().all()
         specializations_list = [s[0] for s in specializations]
         system_prompt = f"""You are SmartClinic AI, an intelligent and comprehensive medical assistant. You MUST provide DETAILED, THOROUGH responses like a knowledgeable doctor would.
@@ -892,16 +900,22 @@ REMEMBER: ALWAYS give this level of detail for ANY health question. Never give s
 User message: """
         response = model.generate_content(system_prompt + user_message)
         ai_response = response.text
+        
+        print(f"AI Response generated successfully")
+        
         return jsonify({'response': ai_response})
     except Exception as e:
         error_msg = str(e)
         print(f"AI Chat Error: {error_msg}")
+        import traceback
+        traceback.print_exc()
+        
         if '429' in error_msg or 'quota' in error_msg.lower():
             return jsonify({
                 'response': "⚠️ I'm currently experiencing high demand. Please try again in a few seconds, or try again later. Our AI service has a daily limit on the free tier."
             })
         return jsonify({
-            'response': "I'm having trouble processing your request. Please try again in a moment."
+            'response': f"I'm having trouble processing your request. Error: {error_msg}"
         })
 
 @app.route('/setup-database-now')

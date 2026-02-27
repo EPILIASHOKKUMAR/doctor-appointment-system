@@ -1027,6 +1027,103 @@ def setup_database():
             'message': str(e)
         }), 500
 
+@app.route('/smart-import-data', methods=['POST'])
+def smart_import_data():
+    """
+    Smart import that handles foreign keys properly
+    """
+    try:
+        data = request.get_json()
+        secret = data.get('secret', '')
+        
+        if secret != 'import-data-2026':
+            return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+        
+        import_data = data.get('data', {})
+        imported = {'users': 0, 'hospitals': 0, 'doctors': 0}
+        
+        # Import users first
+        for user_data in import_data.get('users', []):
+            existing = User.query.filter_by(email=user_data['email']).first()
+            if not existing:
+                user = User(
+                    email=user_data['email'],
+                    password_hash=generate_password_hash(user_data['password']),
+                    name=user_data['name'],
+                    user_type=user_data['user_type'],
+                    phone=user_data.get('phone')
+                )
+                db.session.add(user)
+                imported['users'] += 1
+        
+        db.session.commit()
+        
+        # Import hospitals
+        for hosp_data in import_data.get('hospitals', []):
+            existing = Hospital.query.filter_by(name=hosp_data['name']).first()
+            if not existing:
+                admin = User.query.filter_by(email=hosp_data['admin_email']).first()
+                if admin:
+                    hospital = Hospital(
+                        name=hosp_data['name'],
+                        address=hosp_data['address'],
+                        contact=hosp_data['contact'],
+                        admin_id=admin.id,
+                        description=hosp_data.get('description', '')
+                    )
+                    db.session.add(hospital)
+                    imported['hospitals'] += 1
+        
+        db.session.commit()
+        
+        # Import doctors
+        for doc_data in import_data.get('doctors', []):
+            existing = User.query.filter_by(email=doc_data['email']).first()
+            if not existing:
+                user = User(
+                    email=doc_data['email'],
+                    password_hash=generate_password_hash(doc_data['password']),
+                    name=doc_data['name'],
+                    user_type='doctor'
+                )
+                db.session.add(user)
+                db.session.flush()
+                
+                hospital = Hospital.query.filter_by(name=doc_data['hospital_name']).first()
+                if hospital:
+                    doctor = Doctor(
+                        user_id=user.id,
+                        hospital_id=hospital.id,
+                        specialization=doc_data['specialization'],
+                        experience=doc_data['experience'],
+                        consultation_fee=doc_data['fee'],
+                        about=doc_data.get('about', '')
+                    )
+                    db.session.add(doctor)
+                    imported['doctors'] += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'message': '✅ Data imported successfully!',
+            'imported': imported,
+            'current_data': {
+                'users': User.query.count(),
+                'hospitals': Hospital.query.count(),
+                'doctors': Doctor.query.count()
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
 @app.route('/import-production-data', methods=['POST'])
 def import_production_data():
     """
